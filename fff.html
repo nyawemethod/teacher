@@ -1,0 +1,101 @@
+ res.send(`
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Teacher Degree Checker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #141e30, #243b55);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 40px;
+        width: 380px;
+        border-radius: 15px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      }
+      h1 { margin-bottom: 25px; }
+      input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        margin-bottom: 15px;
+        font-size: 16px;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(to right, #0072ff, #00c6ff);
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:hover { transform: scale(1.05); }
+      #result { margin-top: 20px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Check Teacher Degree</h1>
+      <input type="text" id="teacherName" placeholder="Enter teacher name">
+      <button onclick="searchTeacher()">Search</button>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      async function searchTeacher() {
+        const name = document.getElementById("teacherName").value.trim();
+        const result = document.getElementById("result");
+        if (!name) {
+          result.style.color = "yellow";
+          result.innerHTML = "Please enter a teacher name.";
+          return;
+        }
+        try {
+          const response = await fetch("/teacher/" + name);
+          const data = await response.json();
+          if (response.ok) {
+            result.style.color = "lightgreen";
+            result.innerHTML = data.name + " has a degree in: " + data.degree;
+          } else {
+            result.style.color = "red";
+            result.innerHTML = data.message;
+          }
+        } catch (e) {
+          result.style.color = "red";
+          result.innerHTML = "Server not running!";
+        }
+      }
+    </script>
+  </body>
+  </html>
+  `);
+});
+
+// API endpoint
+app.get("/teacher/:name", (req, res) => {
+  const name = req.params.name.toLowerCase();
+  if (teachers[name]) {
+    res.json({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      degree: teachers[name]
+    });
+  } else {
+    res.status(404).json({ message: "Teacher not found in database." });
+  }
+});
+
+// Start server
+app.listen(3000, () => console.log("Server running at http://localhost:3000"));
